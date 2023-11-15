@@ -6,7 +6,6 @@
 DOTFILES_DIR="."
 VIM_CONFIG="$DOTFILES_DIR/vim"
 ALACRITTY_CONFIG="$DOTFILES_DIR/alacritty"
-LUNARVIM_REPO="https://github.com/LunarVim/LunarVim.git"
 
 # Function to check if a command exists
 command_exists() {
@@ -98,8 +97,7 @@ install_node() {
 install_neovim() {
     if ! command_exists nvim; then
    	 echo "Installing Neovim..."
-    	sudo apt-get update
-    	sudo apt-get -y install neovim
+	 sudo snap install --beta nvim --classic
 
     	echo "Setting up Vim configurations..."
     	# Copy Vim configurations to appropriate location
@@ -172,11 +170,28 @@ install_rust() {
     fi
 }
 
+# Function to check if Golang export is in .zshrc or .profile
+check_golang_export() {
+    local golang_path="/usr/local/go/bin"  # Replace with your Golang installation path
+
+    if [ -f "$HOME/.zshrc" ] && ! grep -q "export PATH=\"\$PATH:$golang_path\"" "$HOME/.zshrc"; then
+        echo "Adding Golang export to .zshrc..."
+        echo -e "\n# Golang export\nexport PATH=\"\$PATH:$golang_path\"" >> "$HOME/.zshrc"
+    elif [ -f "$HOME/.profile" ] && ! grep -q "export PATH=\"\$PATH:$golang_path\"" "$HOME/.profile"; then
+        echo "Adding Golang export to .profile..."
+        echo -e "\n# Golang export\nexport PATH=\"\$PATH:$golang_path\"" >> "$HOME/.profile"
+    else
+        echo "Golang export is already present in .zshrc or .profile."
+    fi
+}
+
 # Function to install Go if not already installed
 install_golang() {
     if ! command_exists go; then
-        echo "Installing Go..."
-        # Commands to install Go based on your OS package manager
+      echo "Installing Go..."
+    	curl -Lo go1.21.4.linux-amd64.tar.gz https://go.dev/dl/go1.21.4.linux-amd64.tar.gz
+    	sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.21.4.linux-amd64.tar.gz
+      rm go1.21.4.linux-amd64.tar.gz
     else
         echo "Go is already installed."
     fi
@@ -184,11 +199,14 @@ install_golang() {
 
 # Function to install LunarVim
 install_lunarvim() {
-    echo "Installing LunarVim..."
-    # Clone LunarVim repository
-    git clone --branch rolling "$LUNARVIM_REPO" ~/.config/nvim
-    # Install LunarVim
-    bash ~/.config/nvim/utils/installer/install.sh
+    if ! command_exists lvim; then
+      echo "Installing LunarVim..."
+      sudo apt-get install -y python3-pip
+
+      LV_BRANCH='release-1.3/neovim-0.9' bash <(curl -s https://raw.githubusercontent.com/LunarVim/LunarVim/release-1.3/neovim-0.9/utils/installer/install.sh)
+    else
+        echo "LunarVim is already installed."
+    fi
 }
 
 # Main function to execute installation steps
@@ -205,7 +223,8 @@ main() {
     install_node
     install_rust
     install_golang
-    # install_lunarvim
+    check_golang_export
+    install_lunarvim
 }
 
 # Execute main function
