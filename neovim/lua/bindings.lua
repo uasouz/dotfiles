@@ -2,12 +2,9 @@ function setup_binding(vim)
   -- Keybindings
   vim.g.mapleader = " "
 
-  -- Avante
-  vim.keymap.set({ "n", "v" }, "<leader>aa", ":AvanteToggle<CR>", { silent = true })
-  vim.keymap.set({ "n", "v" }, "<leader>ar", ":AvanteRefresh<CR>", { silent = true })
-  vim.keymap.set({ "n", "v" }, "<leader>ae", ":AvanteEdit<CR>", { silent = true })
-  vim.keymap.set({ "n", "v" }, "<leader>ac", ":AvanteChat<CR>", { silent = true })
-  vim.keymap.set({ "n", "v" }, "<leader>a?", ":AvanteSwitchProvider<CR>", { silent = true })
+  vim.keymap.set({ "n", "v" }, "<leader>gb", ":BlameToggle window<CR>") -- Git Blame
+  vim.keymap.set({ "n", "v" }, "<leader>zn", ":NoNeckPain<CR>")         -- Git Blame
+
   -- NvimTree
   vim.keymap.set("n", "<leader>e", ":NvimTreeToggle<CR>", { silent = true }) -- File Explorer
 
@@ -103,6 +100,20 @@ function setup_binding(vim)
   vim.keymap.set("n", "<leader>la", lsp.code_action, { desc = "Code Actions" })
   vim.keymap.set("n", "<space>li", "<cmd>LspInfo<CR>", { desc = "LSP Info" })
   vim.keymap.set("n", "<space>lI", "<cmd>Mason<CR>", { desc = "Mason" })
+
+  -- DAP / Debugger Bindings
+  local dap = require('dap')
+  local dapui = require('dapui')
+
+  vim.keymap.set('n', '<F5>', dap.toggle_breakpoint, { desc = 'Toggle Breakpoint' })
+  vim.keymap.set('n', '<F6>', dap.continue, { desc = 'Start/Continue Debugger' })
+  vim.keymap.set('n', '<F7>', dap.step_over, { desc = 'Step Over' })
+  vim.keymap.set('n', '<F8>', dap.step_into, { desc = 'Step Into' })
+  vim.keymap.set('n', '<F9>', dap.step_out, { desc = 'Step Out' })
+  vim.keymap.set('n', '<S-F6>', dap.terminate, { desc = 'Stop Debugger' }) -- Shift+F6 to terminate
+
+  vim.keymap.set('n', '<leader>du', dapui.toggle, { desc = 'Toggle DAP UI' })
+  vim.keymap.set('n', '<leader>de', dapui.eval, { desc = 'DAP Eval' })
 end
 
 return setup_binding

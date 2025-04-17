@@ -24,6 +24,13 @@ local function my_on_attach(bufnr)
 end
 
 require("lazy").setup({
+  {
+    "FabijanZulj/blame.nvim",
+    lazy = false,
+    config = function()
+      require('blame').setup {}
+    end,
+  },
   -- Tabs
   {
     'romgrk/barbar.nvim',
@@ -44,51 +51,24 @@ require("lazy").setup({
   {
     "yetone/avante.nvim",
     event = "VeryLazy",
-    lazy = false,
     version = false, -- Set this to "*" to always pull the latest release version, or set it to false to update to the latest code changes.
     opts = {
       auto_suggestions_provider = "ollama",
       provider = "ollama",
+      gemini = {
+        model = "gemini-2.5-pro-exp-03-25",
+        temperature = 0,
+        max_tokens = 8192
+      },
       ollama = {
         endpoint = 'http://127.0.0.1:11434',
-        model = 'hhao/qwen2.5-coder-tools', -- Specify your model here
+        model = 'hhao/qwen2.5-coder-tools:14b', -- Specify your model here
         timeout = 120000,
         options = {
-          num_ctx = 32768,
+          num_ctx = 10240,
           temperature = 0,
         },
         stream = true,
-      },
-      mappings = {
-        diff = {
-          ours = "co",
-          theirs = "ct",
-          all_theirs = "ca",
-          both = "cb",
-          cursor = "cc",
-          next = "]x",
-          prev = "[x",
-        },
-        suggestion = {
-          accept = "<M-l>",
-          next = "<M-]>",
-          prev = "<M-[>",
-          dismiss = "<C-]>",
-        },
-        jump = {
-          next = "]]",
-          prev = "[[",
-        },
-        submit = {
-          normal = "<CR>",
-          insert = "<C-s>",
-        },
-        sidebar = {
-          apply_all = "A",
-          apply_cursor = "a",
-          switch_windows = "<Tab>",
-          reverse_switch_windows = "<S-Tab>",
-        },
       },
     },
     -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
@@ -139,17 +119,84 @@ require("lazy").setup({
     config = function()
       require('onedark').setup({
         style = 'deep',
-        transparency = true
+        transparent = true
       })
       require('onedark').load()
     end
   },
-  { "shortcuts/no-neck-pain.nvim" },
+  -- debugger
+  {
+    "mfussenegger/nvim-dap",
+    dependencies = {
+      'nvim-neotest/nvim-nio',
+      'rcarriga/nvim-dap-ui',
+    },
+    event = 'VeryLazy',
+    config = function()
+      require("dapui").setup({
+        icons = { expanded = "▾", collapsed = "▸" },
+        layouts = {
+          {
+            elements = {
+              { id = "scopes", size = 0.25 },
+              "breakpoints",
+              "stacks",
+              "watches",
+            },
+            size = 10, -- columns
+            position = "bottom",
+          },
+        },
+      })
+    end
+  },
+  --flutter
+  {
+    'nvim-flutter/flutter-tools.nvim',
+    lazy = false,
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'stevearc/dressing.nvim', -- optional for vim.ui.select
+    },
+    config = true,
+  },
+  {
+    "shortcuts/no-neck-pain.nvim",
+    config = function()
+      require("no-neck-pain").setup({
+        width = 150,
+        enabled = true,
+        buffers = {
+          scratchPad = {
+            -- set to false to
+            -- disable auto-saving
+            enabled = true,
+            -- set to nil to default
+            -- to current working directory
+            location = "~/Documents/",
+          },
+          bo = {
+            filetype = "md"
+          },
+        },
+      })
+    end
+  },
   {
     "shellRaining/hlchunk.nvim",
     event = { "BufReadPre", "BufNewFile" },
     config = function()
-      require("hlchunk").setup({})
+      require("hlchunk").setup({
+        chunk = {
+          enable = true
+          -- ...
+        },
+        indent = {
+          enable = true
+          -- ...
+
+        }
+      })
     end
   },
   -- File explorer
@@ -158,14 +205,17 @@ require("lazy").setup({
     dependencies = "nvim-tree/nvim-web-devicons",
     config = function()
       require("nvim-tree").setup({
-        on_attach = my_on_attach
+        on_attach = my_on_attach,
+        update_focused_file = {
+          enable = true
+        }
       })
     end
   },
 
   -- LSP + Completion
   { "neovim/nvim-lspconfig" },
-  { "williamboman/mason.nvim",    config = true },
+  { "williamboman/mason.nvim", config = true },
   {
     "williamboman/mason-lspconfig.nvim",
     config = function()
@@ -407,7 +457,42 @@ lspconfig.lua_ls.setup({
   },
 })
 lspconfig.ts_ls.setup({})
-lspconfig.gopls.setup({})
+lspconfig.gopls.setup({
+  cmd = { "gopls" },
+  filetype = { "go", "gomod", "gowork", "gotmpl" },
+  settings = {
+    gopls = {
+      analyses = {
+        unusedparams = true,
+        shadow = true,
+        nilness = true,
+        ununusedwrite = true,
+        usebuildtag = true,
+        atomicalign = true,
+        exportedcampatibility = true,
+        nonewvars = true,
+        printf = true,
+        stringintconv = true,
+        stdmethods = true,
+        structtag = true,
+        testinggoroutine = true,
+        tests = true,
+        timeformat = true,
+        unreachablecode = true,
+        unusedresult = true,
+      },
+      codelenses = {
+        generate = true,
+        gc_details = true,
+        test = true,
+        tidy = true,
+        vendor = true,
+      },
+      staticcheck = true,
+      usePlaceholders = true,
+    },
+  },
+})
 lspconfig.pyright.setup({})
 
 -- Autocompletion setup
